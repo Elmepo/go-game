@@ -223,8 +223,9 @@ func (g *GameScene) Update() error {
 
 func (g *GameScene) Draw(screen *ebiten.Image) {
 	scoreString := fmt.Sprintf("Score: %d", g.score)
-	ebitenutil.DebugPrint(screen, scoreString)
-	//ebitenutil.DebugPrint(screen, time.Since(g.StartTime))
+	ebitenutil.DebugPrintAt(screen, scoreString, 0, 0)
+	timeString := fmt.Sprintf("Timer: %d", time.Since(g.StartTime).Round(time.Second))
+	ebitenutil.DebugPrintAt(screen, timeString, 0, 30)
 
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(g.player.position.x, g.player.position.y)
