@@ -46,10 +46,16 @@ type Food struct {
 	eaten    bool
 }
 
+type Mine struct {
+	sprite   *ebiten.Image
+	position Position
+}
+
 type GameScene struct {
 	player     Player
 	screenSize Screen
 	food       Food
+	mines      []Mine
 	score      int
 	StartTime  time.Time
 	Timer      time.Duration
@@ -134,16 +140,37 @@ func initGame() error {
 			eaten:  true,
 		}
 
+		var emptyMines []Mine
+
 		game.CurrentScene = &GameScene{
 			player:     *player,
 			screenSize: *gameScreen,
 			food:       *food,
+			mines:      emptyMines,
 			score:      0,
 			StartTime:  time.Now(),
 			Timer:      60 * time.Second,
 		}
 	}
 	return nil
+}
+
+func addMine(currentMines []Mine) []Mine {
+	mineImage := ebiten.NewImage(5, 5)
+	mineImage.Fill(color.RGBA{R: 255, G: 0, B: 0, A: 255})
+
+	minePosition := &Position{
+		x: 0 + rand.Float64()*float64(gameScreen.w),
+		y: 0 + rand.Float64()*float64(gameScreen.h),
+	}
+
+	newMine := &Mine{
+		sprite:   mineImage,
+		position: *minePosition,
+	}
+
+	currentMines = append(currentMines, *newMine)
+	return currentMines
 }
 
 func (m *MainMenuScene) Update() error {
@@ -182,6 +209,11 @@ func (g *GameScene) Update() error {
 		g.food.eaten = false
 	}
 
+	roundedTime := time.Since(g.StartTime).Round(time.Second)
+	if int(roundedTime.Seconds())%10 == 0 {
+		g.mines = addMine(g.mines)
+	}
+
 	g.player = updatePlayerPosition(g.player)
 
 	g.player = forcePlayerInBounds(g.player, g.screenSize)
@@ -193,6 +225,16 @@ func (g *GameScene) Update() error {
 		fmt.Println("Food is in player")
 		g.score += 1
 		g.food.eaten = true
+	}
+
+	for _, v := range g.mines {
+		mineRect := image.Rect(int(v.position.x), int(v.position.y), int(v.position.x)+v.sprite.Bounds().Dx(), int(v.position.y)+v.sprite.Bounds().Dy())
+		if mineRect.In(playerRect) {
+			fmt.Println("Player hit a mine")
+			game.CurrentScene = &EndGameScene{
+				FinalScore: g.score,
+			}
+		}
 	}
 
 	return nil
@@ -209,6 +251,12 @@ func (g *GameScene) Draw(screen *ebiten.Image) {
 
 	foodop := &ebiten.DrawImageOptions{}
 	foodop.GeoM.Translate(g.food.position.x, g.food.position.y)
+
+	for _, v := range g.mines {
+		mop := &ebiten.DrawImageOptions{}
+		mop.GeoM.Translate(v.position.x, v.position.y)
+		screen.DrawImage(v.sprite, mop)
+	}
 
 	screen.DrawImage(g.player.sprite, op)
 	screen.DrawImage(g.food.sprite, foodop)
