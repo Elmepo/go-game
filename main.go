@@ -123,7 +123,7 @@ func initGame() error {
 		player := &Player{
 			sprite:   playerImage,
 			position: *playerInitialPosition,
-			speed:    10.0,
+			speed:    5.0,
 		}
 
 		foodImage := ebiten.NewImage(5, 5)
