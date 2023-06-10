@@ -42,6 +42,50 @@ type Game struct {
 	score      int
 }
 
+func forcePlayerInBounds(p Player, s Screen) Player {
+	if p.position.x < 0 {
+		p.position.x = p.position.x * -1
+	}
+	if p.position.x >= float64(s.w) {
+		p.position.x = float64(s.w) - float64(p.sprite.Bounds().Dx())
+		fmt.Printf("Out of bounds x: %f\n", p.position.x)
+	}
+	if p.position.y < 0 {
+		p.position.y = p.position.y * -1
+	}
+	if p.position.y >= float64(s.h) {
+		p.position.y = float64(s.h) - float64(p.sprite.Bounds().Dy())
+		fmt.Printf("Out of bounds y: %f\n", p.position.y)
+	}
+	return p
+}
+
+func updatePlayerPosition(p Player) Player {
+	if ebiten.IsKeyPressed(ebiten.KeyArrowUp) && ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
+		p.position.y = p.position.y - p.speed
+		p.position.x = p.position.x - p.speed
+	} else if ebiten.IsKeyPressed(ebiten.KeyArrowUp) && ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
+		p.position.y = p.position.y - p.speed
+		p.position.x = p.position.x + p.speed
+	} else if ebiten.IsKeyPressed(ebiten.KeyArrowDown) && ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
+		p.position.y = p.position.y + p.speed
+		p.position.x = p.position.x - p.speed
+	} else if ebiten.IsKeyPressed(ebiten.KeyArrowDown) && ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
+		p.position.y = p.position.y + p.speed
+		p.position.x = p.position.x + p.speed
+	} else if ebiten.IsKeyPressed(ebiten.KeyArrowUp) {
+		p.position.y = p.position.y - p.speed
+	} else if ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
+		p.position.y = p.position.y + p.speed
+	} else if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
+		p.position.x = p.position.x - p.speed
+	} else if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
+		p.position.x = p.position.x + p.speed
+	}
+
+	return p
+}
+
 func (g *Game) Update() error {
 	if ebiten.IsKeyPressed(ebiten.KeyEscape) {
 		return fmt.Errorf("killing game")
@@ -54,42 +98,9 @@ func (g *Game) Update() error {
 		g.food.eaten = false
 	}
 
-	if ebiten.IsKeyPressed(ebiten.KeyArrowUp) && ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
-		g.player.position.y = g.player.position.y - g.player.speed
-		g.player.position.x = g.player.position.x - g.player.speed
-	} else if ebiten.IsKeyPressed(ebiten.KeyArrowUp) && ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
-		g.player.position.y = g.player.position.y - g.player.speed
-		g.player.position.x = g.player.position.x + g.player.speed
-	} else if ebiten.IsKeyPressed(ebiten.KeyArrowDown) && ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
-		g.player.position.y = g.player.position.y + g.player.speed
-		g.player.position.x = g.player.position.x - g.player.speed
-	} else if ebiten.IsKeyPressed(ebiten.KeyArrowDown) && ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
-		g.player.position.y = g.player.position.y + g.player.speed
-		g.player.position.x = g.player.position.x + g.player.speed
-	} else if ebiten.IsKeyPressed(ebiten.KeyArrowUp) {
-		g.player.position.y = g.player.position.y - g.player.speed
-	} else if ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
-		g.player.position.y = g.player.position.y + g.player.speed
-	} else if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
-		g.player.position.x = g.player.position.x - g.player.speed
-	} else if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
-		g.player.position.x = g.player.position.x + g.player.speed
-	}
+	g.player = updatePlayerPosition(g.player)
 
-	if g.player.position.x < 0 {
-		g.player.position.x = g.player.position.x * -1
-	}
-	if g.player.position.x >= float64(g.screenSize.w) {
-		g.player.position.x = float64(g.screenSize.w) - float64(g.player.sprite.Bounds().Dx())
-		fmt.Printf("Out of bounds x: %f\n", g.player.position.x)
-	}
-	if g.player.position.y < 0 {
-		g.player.position.y = g.player.position.y * -1
-	}
-	if g.player.position.y >= float64(g.screenSize.h) {
-		g.player.position.y = float64(g.screenSize.h) - float64(g.player.sprite.Bounds().Dy())
-		fmt.Printf("Out of bounds y: %f\n", g.player.position.y)
-	}
+	g.player = forcePlayerInBounds(g.player, g.screenSize)
 
 	foodRect := image.Rect(int(g.food.position.x), int(g.food.position.y), int(g.food.position.x)+g.food.sprite.Bounds().Dx(), int(g.food.position.y)+g.food.sprite.Bounds().Dy())
 	playerRect := image.Rect(int(g.player.position.x), int(g.player.position.y), int(g.player.position.x)+g.player.sprite.Bounds().Dx(), int(g.player.position.y)+g.player.sprite.Bounds().Dy())
