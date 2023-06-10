@@ -108,48 +108,7 @@ func updatePlayerPosition(p Player) Player {
 	return p
 }
 
-func (m *MainMenuScene) Update() error {
-	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-		return fmt.Errorf("killing game")
-	}
-	if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
-		playerImage := ebiten.NewImage(20, 20)
-		playerImage.Fill(color.RGBA{R: 255, A: 255})
-		playerInitialPosition := &Position{
-			x: float64(gameScreen.w/2) - float64(playerImage.Bounds().Dx()/2),
-			y: float64(gameScreen.h/2) - float64(playerImage.Bounds().Dy()/2),
-		}
-
-		player := &Player{
-			sprite:   playerImage,
-			position: *playerInitialPosition,
-			speed:    10.0,
-		}
-
-		foodImage := ebiten.NewImage(5, 5)
-		foodImage.Fill(color.RGBA{R: 255, G: 255, B: 255, A: 255})
-
-		food := &Food{
-			sprite: foodImage,
-			eaten:  true,
-		}
-
-		game.CurrentScene = &GameScene{
-			player:     *player,
-			screenSize: *gameScreen,
-			food:       *food,
-			StartTime:  time.Now(),
-			Timer:      60 * time.Second,
-		}
-	}
-	return nil
-}
-
-func (m *MainMenuScene) Draw(screen *ebiten.Image) {
-	ebitenutil.DebugPrintAt(screen, "Press Enter to play", gameScreen.w/2, gameScreen.h/2)
-}
-
-func (e *EndGameScene) Update() error {
+func initGame() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		return fmt.Errorf("killing game")
 	}
@@ -185,6 +144,18 @@ func (e *EndGameScene) Update() error {
 		}
 	}
 	return nil
+}
+
+func (m *MainMenuScene) Update() error {
+	return initGame()
+}
+
+func (m *MainMenuScene) Draw(screen *ebiten.Image) {
+	ebitenutil.DebugPrintAt(screen, "Press Enter to play", gameScreen.w/2, gameScreen.h/2)
+}
+
+func (e *EndGameScene) Update() error {
+	return initGame()
 }
 
 func (e *EndGameScene) Draw(screen *ebiten.Image) {
