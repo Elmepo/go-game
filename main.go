@@ -109,6 +109,9 @@ func updatePlayerPosition(p Player) Player {
 }
 
 func (m *MainMenuScene) Update() error {
+	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+		return fmt.Errorf("killing game")
+	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
 		playerImage := ebiten.NewImage(20, 20)
 		playerImage.Fill(color.RGBA{R: 255, A: 255})
@@ -147,6 +150,9 @@ func (m *MainMenuScene) Draw(screen *ebiten.Image) {
 }
 
 func (e *EndGameScene) Update() error {
+	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+		return fmt.Errorf("killing game")
+	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
 		playerImage := ebiten.NewImage(20, 20)
 		playerImage.Fill(color.RGBA{R: 255, A: 255})
