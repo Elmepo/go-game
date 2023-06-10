@@ -114,7 +114,7 @@ func initGame() error {
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
 		playerImage := ebiten.NewImage(20, 20)
-		playerImage.Fill(color.RGBA{R: 255, A: 255})
+		playerImage.Fill(color.RGBA{B: 255, A: 255})
 		playerInitialPosition := &Position{
 			x: float64(gameScreen.w/2) - float64(playerImage.Bounds().Dx()/2),
 			y: float64(gameScreen.h/2) - float64(playerImage.Bounds().Dy()/2),
