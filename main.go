@@ -11,7 +11,15 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
+
+type Scene interface {
+	Update() error
+	Draw(screen *ebiten.Image)
+}
+
+type MainMenuScene struct{}
 
 type Position struct {
 	x float64
@@ -35,11 +43,56 @@ type Food struct {
 	eaten    bool
 }
 
-type Game struct {
+type GameScene struct {
 	player     Player
 	screenSize Screen
 	food       Food
 	score      int
+}
+
+type Game struct {
+	CurrentScene Scene
+}
+
+var (
+	game       *Game
+	gameScreen *Screen
+)
+
+func (m *MainMenuScene) Update() error {
+	if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
+		playerImage := ebiten.NewImage(20, 20)
+		playerImage.Fill(color.RGBA{R: 255, A: 255})
+		playerInitialPosition := &Position{
+			x: float64(gameScreen.w/2) - float64(playerImage.Bounds().Dx()/2),
+			y: float64(gameScreen.h/2) - float64(playerImage.Bounds().Dy()/2),
+		}
+
+		player := &Player{
+			sprite:   playerImage,
+			position: *playerInitialPosition,
+			speed:    10.0,
+		}
+
+		foodImage := ebiten.NewImage(5, 5)
+		foodImage.Fill(color.RGBA{R: 255, G: 255, B: 255, A: 255})
+
+		food := &Food{
+			sprite: foodImage,
+			eaten:  true,
+		}
+
+		game.CurrentScene = &GameScene{
+			player:     *player,
+			screenSize: *gameScreen,
+			food:       *food,
+		}
+	}
+	return nil
+}
+
+func (m *MainMenuScene) Draw(screen *ebiten.Image) {
+	ebitenutil.DebugPrintAt(screen, "Press Enter to play", gameScreen.w/2, gameScreen.h/2)
 }
 
 func forcePlayerInBounds(p Player, s Screen) Player {
@@ -86,7 +139,7 @@ func updatePlayerPosition(p Player) Player {
 	return p
 }
 
-func (g *Game) Update() error {
+func (g *GameScene) Update() error {
 	if ebiten.IsKeyPressed(ebiten.KeyEscape) {
 		return fmt.Errorf("killing game")
 	}
@@ -114,7 +167,7 @@ func (g *Game) Update() error {
 	return nil
 }
 
-func (g *Game) Draw(screen *ebiten.Image) {
+func (g *GameScene) Draw(screen *ebiten.Image) {
 	scoreString := fmt.Sprintf("Score: %d", g.score)
 	ebitenutil.DebugPrint(screen, scoreString)
 
@@ -128,45 +181,32 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	screen.DrawImage(g.food.sprite, foodop)
 }
 
+func (g *Game) Update() error {
+	return g.CurrentScene.Update()
+}
+
+func (g *Game) Draw(screen *ebiten.Image) {
+	g.CurrentScene.Draw(screen)
+}
+
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
 	return outsideWidth, outsideHeight
 }
 
 func main() {
-	ebiten.SetWindowTitle("Hellow World!")
-	image := ebiten.NewImage(20, 20)
-	image.Fill(color.RGBA{R: 255, A: 255})
+	ebiten.SetWindowTitle("Go Game")
 
-	screen := &Screen{
+	gameScreen = &Screen{
 		w: 640,
 		h: 480,
 	}
 
-	playerInitialPosition := &Position{
-		x: float64(screen.w/2) - float64(image.Bounds().Dx()/2),
-		y: float64(screen.h/2) - float64(image.Bounds().Dy()/2),
+	ebiten.SetWindowSize(gameScreen.w, gameScreen.h)
+
+	game = &Game{
+		CurrentScene: &MainMenuScene{},
 	}
 
-	player := &Player{
-		sprite:   image,
-		position: *playerInitialPosition,
-		speed:    10.0,
-	}
-
-	foodImage := ebiten.NewImage(5, 5)
-	foodImage.Fill(color.RGBA{R: 255, G: 255, B: 255, A: 255})
-
-	food := &Food{
-		sprite: foodImage,
-		eaten:  true,
-	}
-
-	game := &Game{
-		player:     *player,
-		screenSize: *screen,
-		food:       *food,
-	}
-	ebiten.SetWindowSize(game.screenSize.w, game.screenSize.h)
 	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)
 	}
