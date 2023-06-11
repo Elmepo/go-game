@@ -63,7 +63,6 @@ type GameScene struct {
 	score      int
 	StartTime  time.Time
 	EndTime    time.Time
-	//Timer      time.Duration
 }
 
 type Game struct {
@@ -120,10 +119,6 @@ func updatePlayerPosition(p Player) Player {
 }
 
 func initGame() error {
-	//if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-	//	return fmt.Errorf("killing game")
-	//}
-	//if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
 	playerImage := ebiten.NewImage(20, 20)
 	playerImage.Fill(color.RGBA{B: 255, A: 255})
 	playerInitialPosition := &Position{
@@ -158,7 +153,6 @@ func initGame() error {
 		StartTime:  now,
 		EndTime:    now.Add(60 * time.Second),
 	}
-	//}
 	return nil
 }
 
@@ -184,7 +178,6 @@ func (m *MainMenuScene) Update() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		return fmt.Errorf("killing game")
 	}
-	//} else if ebiten.IsKeyPressed(ebiten.KeyEnter) {
 	startButtonRect := image.Rect(m.startButtonX, m.startButtonY, m.startButtonX+m.startButton.Bounds().Dx(), m.startButtonY+m.startButton.Bounds().Dy())
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		cursorX, cursorY := ebiten.CursorPosition()
