@@ -58,7 +58,8 @@ type GameScene struct {
 	mines      []Mine
 	score      int
 	StartTime  time.Time
-	Timer      time.Duration
+	EndTime    time.Time
+	//Timer      time.Duration
 }
 
 type Game struct {
@@ -142,14 +143,17 @@ func initGame() error {
 
 		var emptyMines []Mine
 
+		now := time.Now()
+
 		game.CurrentScene = &GameScene{
 			player:     *player,
 			screenSize: *gameScreen,
 			food:       *food,
 			mines:      emptyMines,
 			score:      0,
-			StartTime:  time.Now(),
-			Timer:      60 * time.Second,
+			StartTime:  now,
+			EndTime:    now.Add(60 * time.Second),
+			//Timer:      60 * time.Second,
 		}
 	}
 	return nil
@@ -196,7 +200,7 @@ func (g *GameScene) Update() error {
 		return fmt.Errorf("killing game")
 	}
 
-	if time.Since(g.StartTime) > g.Timer {
+	if time.Until(g.EndTime) <= 0 {
 		game.CurrentScene = &EndGameScene{
 			FinalScore: g.score,
 		}
@@ -245,7 +249,7 @@ func (g *GameScene) Update() error {
 func (g *GameScene) Draw(screen *ebiten.Image) {
 	scoreString := fmt.Sprintf("Score: %d", g.score)
 	ebitenutil.DebugPrintAt(screen, scoreString, 0, 0)
-	timeString := fmt.Sprintf("Timer: %s", time.Since(g.StartTime).Truncate(time.Second).String())
+	timeString := fmt.Sprintf("Timer: %s", time.Until(g.EndTime).Truncate(time.Second).String())
 	ebitenutil.DebugPrintAt(screen, timeString, 0, 30)
 
 	op := &ebiten.DrawImageOptions{}
