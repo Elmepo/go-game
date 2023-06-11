@@ -18,10 +18,13 @@ type Scene interface {
 	Draw(screen *ebiten.Image)
 }
 
+type Button struct {
+	sprite *ebiten.Image
+}
+
 type MainMenuScene struct {
-	startButton  *ebiten.Image
-	startButtonX int
-	startButtonY int
+	buttons           []Button
+	highlightedButton int
 }
 
 type EndGameScene struct {
@@ -177,22 +180,53 @@ func addMine(currentMines []Mine) []Mine {
 func (m *MainMenuScene) Update() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		return fmt.Errorf("killing game")
-	}
-	startButtonRect := image.Rect(m.startButtonX, m.startButtonY, m.startButtonX+m.startButton.Bounds().Dx(), m.startButtonY+m.startButton.Bounds().Dy())
-	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
-		cursorX, cursorY := ebiten.CursorPosition()
-		cursorPosition := &image.Point{X: cursorX, Y: cursorY}
-		if cursorPosition.In(startButtonRect) {
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyArrowUp) {
+		if m.highlightedButton > 0 {
+			m.highlightedButton -= 1
+		}
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyArrowDown) {
+		if m.highlightedButton < len(m.buttons)-1 {
+			m.highlightedButton += 1
+		}
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
+		// Hard coding this for now
+		if m.highlightedButton == 0 {
 			return initGame()
+		} else if m.highlightedButton == 1 {
+			return fmt.Errorf("killing game")
 		}
 	}
 	return nil
 }
 
 func (m *MainMenuScene) Draw(screen *ebiten.Image) {
-	buttonOptions := &ebiten.DrawImageOptions{}
-	buttonOptions.GeoM.Translate(float64(m.startButtonX), float64(m.startButtonY))
-	screen.DrawImage(m.startButton, buttonOptions)
+	// To place all the buttons:
+	// Imagine a rectangle comprising of all the buttons. This rectangle has a height equal to:
+	// The height of each button, multiplied by the number of buttons, plus the amount of padding between each button, multiplied by the number of buttons minus 1
+
+	// Using constants for now
+	buttonHeight := 30
+	buttonPadding := 10
+
+	buttonGroupArea := (buttonHeight * len(m.buttons)) + (buttonPadding * (len(m.buttons) - 1))
+	topOfButtonGroup := (gameScreen.h / 2) - (buttonGroupArea / 2)
+
+	for i, v := range m.buttons {
+		buttonOptions := &ebiten.DrawImageOptions{}
+		buttonX := (gameScreen.w / 2) - (v.sprite.Bounds().Dx() / 2)
+		buttonY := topOfButtonGroup + ((buttonPadding + buttonHeight) * i)
+		buttonOptions.GeoM.Translate(float64(buttonX), float64(buttonY))
+		if i == m.highlightedButton {
+			highlightButton := ebiten.NewImage(v.sprite.Bounds().Dx()+4, v.sprite.Bounds().Dy()+4)
+			highlightButton.Fill(color.RGBA{R: 255, G: 255, B: 0, A: 255})
+			highlightOptions := &ebiten.DrawImageOptions{}
+			highlightX := buttonX - 2
+			highlightY := buttonY - 2
+			highlightOptions.GeoM.Translate(float64(highlightX), float64(highlightY))
+			screen.DrawImage(highlightButton, highlightOptions)
+		}
+		screen.DrawImage(v.sprite, buttonOptions)
+	}
 }
 
 func (e *EndGameScene) Update() error {
@@ -310,11 +344,23 @@ func main() {
 		log.Fatal(err)
 	}
 
+	exitButton, _, err := ebitenutil.NewImageFromFile("./exitGame.png")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var buttons []Button
+	buttons = append(buttons, Button{sprite: startButton})
+	buttons = append(buttons, Button{sprite: exitButton})
+
 	game = &Game{
 		CurrentScene: &MainMenuScene{
-			startButton:  startButton,
-			startButtonX: (gameScreen.w / 2) - (startButton.Bounds().Dx() / 2),
-			startButtonY: (gameScreen.h / 2) - (startButton.Bounds().Dy() / 2),
+			buttons:           buttons,
+			highlightedButton: 0,
+			//startButton:  startButton,
+			//exitButton:   exitButton,
+			//startButtonX: (gameScreen.w / 2) - (startButton.Bounds().Dx() / 2),
+			//startButtonY: (gameScreen.h / 2) - (startButton.Bounds().Dy() / 2),
 		},
 	}
 
