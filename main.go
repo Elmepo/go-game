@@ -116,46 +116,45 @@ func updatePlayerPosition(p Player) Player {
 }
 
 func initGame() error {
-	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-		return fmt.Errorf("killing game")
+	//if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+	//	return fmt.Errorf("killing game")
+	//}
+	//if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
+	playerImage := ebiten.NewImage(20, 20)
+	playerImage.Fill(color.RGBA{B: 255, A: 255})
+	playerInitialPosition := &Position{
+		x: float64(gameScreen.w/2) - float64(playerImage.Bounds().Dx()/2),
+		y: float64(gameScreen.h/2) - float64(playerImage.Bounds().Dy()/2),
 	}
-	if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
-		playerImage := ebiten.NewImage(20, 20)
-		playerImage.Fill(color.RGBA{B: 255, A: 255})
-		playerInitialPosition := &Position{
-			x: float64(gameScreen.w/2) - float64(playerImage.Bounds().Dx()/2),
-			y: float64(gameScreen.h/2) - float64(playerImage.Bounds().Dy()/2),
-		}
 
-		player := &Player{
-			sprite:   playerImage,
-			position: *playerInitialPosition,
-			speed:    5.0,
-		}
-
-		foodImage := ebiten.NewImage(5, 5)
-		foodImage.Fill(color.RGBA{R: 255, G: 255, B: 255, A: 255})
-
-		food := &Food{
-			sprite: foodImage,
-			eaten:  true,
-		}
-
-		var emptyMines []Mine
-
-		now := time.Now()
-
-		game.CurrentScene = &GameScene{
-			player:     *player,
-			screenSize: *gameScreen,
-			food:       *food,
-			mines:      emptyMines,
-			score:      0,
-			StartTime:  now,
-			EndTime:    now.Add(60 * time.Second),
-			//Timer:      60 * time.Second,
-		}
+	player := &Player{
+		sprite:   playerImage,
+		position: *playerInitialPosition,
+		speed:    5.0,
 	}
+
+	foodImage := ebiten.NewImage(5, 5)
+	foodImage.Fill(color.RGBA{R: 255, G: 255, B: 255, A: 255})
+
+	food := &Food{
+		sprite: foodImage,
+		eaten:  true,
+	}
+
+	var emptyMines []Mine
+
+	now := time.Now()
+
+	game.CurrentScene = &GameScene{
+		player:     *player,
+		screenSize: *gameScreen,
+		food:       *food,
+		mines:      emptyMines,
+		score:      0,
+		StartTime:  now,
+		EndTime:    now.Add(60 * time.Second),
+	}
+	//}
 	return nil
 }
 
@@ -178,7 +177,12 @@ func addMine(currentMines []Mine) []Mine {
 }
 
 func (m *MainMenuScene) Update() error {
-	return initGame()
+	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+		return fmt.Errorf("killing game")
+	} else if ebitenutil.IsKeyPressed(ebiten.KeyEnter) {
+		return initGame()
+	}
+	return nil
 }
 
 func (m *MainMenuScene) Draw(screen *ebiten.Image) {
@@ -186,7 +190,12 @@ func (m *MainMenuScene) Draw(screen *ebiten.Image) {
 }
 
 func (e *EndGameScene) Update() error {
-	return initGame()
+	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+		return fmt.Errorf("killing game")
+	} else if ebitenutil.IsKeyPressed(ebiten.KeyEnter) {
+		return initGame()
+	}
+	return nil
 }
 
 func (e *EndGameScene) Draw(screen *ebiten.Image) {
