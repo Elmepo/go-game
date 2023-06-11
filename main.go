@@ -209,8 +209,16 @@ func (g *GameScene) Update() error {
 		g.food.eaten = false
 	}
 
-	roundedTime := time.Since(g.StartTime).Round(time.Second)
-	if int(roundedTime.Seconds())%10 == 0 {
+	//roundedTime := time.Since(g.StartTime).Round(time.Second)
+	//if int(roundedTime.Seconds())%10 == 0 {
+	//	g.mines = addMine(g.mines)
+	//}
+
+	numberOfMines := len(g.mines)
+	//roundedTime := int(time.Since(g.StartTime).Truncate(10 * time.Second).Seconds())
+	roundedTime := int(time.Since(g.StartTime).Seconds())
+	if (roundedTime / 10) > numberOfMines {
+		fmt.Printf("RoundedTime: %d\n", roundedTime)
 		g.mines = addMine(g.mines)
 	}
 
@@ -243,7 +251,9 @@ func (g *GameScene) Update() error {
 func (g *GameScene) Draw(screen *ebiten.Image) {
 	scoreString := fmt.Sprintf("Score: %d", g.score)
 	ebitenutil.DebugPrintAt(screen, scoreString, 0, 0)
-	timeString := fmt.Sprintf("Timer: %d", time.Since(g.StartTime).Round(time.Second))
+	//timeString := fmt.Sprintf("Timer: %d", time.Since(g.StartTime).Round(time.Second))
+	timeString := fmt.Sprintf("Timer: %s", time.Since(g.StartTime).String())
+	//ebitenutil.DebugPrintAt(screen, timeString, 0, 30)
 	ebitenutil.DebugPrintAt(screen, timeString, 0, 30)
 
 	op := &ebiten.DrawImageOptions{}
