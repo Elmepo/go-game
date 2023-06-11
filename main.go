@@ -18,7 +18,11 @@ type Scene interface {
 	Draw(screen *ebiten.Image)
 }
 
-type MainMenuScene struct{}
+type MainMenuScene struct {
+	startButton  *ebiten.Image
+	startButtonX int
+	startButtonY int
+}
 
 type EndGameScene struct {
 	FinalScore int
@@ -179,20 +183,29 @@ func addMine(currentMines []Mine) []Mine {
 func (m *MainMenuScene) Update() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		return fmt.Errorf("killing game")
-	} else if ebitenutil.IsKeyPressed(ebiten.KeyEnter) {
-		return initGame()
+	}
+	//} else if ebiten.IsKeyPressed(ebiten.KeyEnter) {
+	startButtonRect := image.Rect(m.startButtonX, m.startButtonY, m.startButtonX+m.startButton.Bounds().Dx(), m.startButtonY+m.startButton.Bounds().Dy())
+	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
+		cursorX, cursorY := ebiten.CursorPosition()
+		cursorPosition := &image.Point{X: cursorX, Y: cursorY}
+		if cursorPosition.In(startButtonRect) {
+			return initGame()
+		}
 	}
 	return nil
 }
 
 func (m *MainMenuScene) Draw(screen *ebiten.Image) {
-	ebitenutil.DebugPrintAt(screen, "Press Enter to play", gameScreen.w/2, gameScreen.h/2)
+	buttonOptions := &ebiten.DrawImageOptions{}
+	buttonOptions.GeoM.Translate(float64(m.startButtonX), float64(m.startButtonY))
+	screen.DrawImage(m.startButton, buttonOptions)
 }
 
 func (e *EndGameScene) Update() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		return fmt.Errorf("killing game")
-	} else if ebitenutil.IsKeyPressed(ebiten.KeyEnter) {
+	} else if ebiten.IsKeyPressed(ebiten.KeyEnter) {
 		return initGame()
 	}
 	return nil
@@ -299,8 +312,17 @@ func main() {
 
 	ebiten.SetWindowSize(gameScreen.w, gameScreen.h)
 
+	startButton, _, err := ebitenutil.NewImageFromFile("./startGame.png")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	game = &Game{
-		CurrentScene: &MainMenuScene{},
+		CurrentScene: &MainMenuScene{
+			startButton:  startButton,
+			startButtonX: (gameScreen.w / 2) - (startButton.Bounds().Dx() / 2),
+			startButtonY: (gameScreen.h / 2) - (startButton.Bounds().Dy() / 2),
+		},
 	}
 
 	if err := ebiten.RunGame(game); err != nil {
