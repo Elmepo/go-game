@@ -11,6 +11,11 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/hajimehoshi/ebiten/v2/text"
+
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/gofont/goregular"
+	"golang.org/x/image/font/opentype"
 )
 
 type Scene interface {
@@ -18,12 +23,13 @@ type Scene interface {
 	Draw(screen *ebiten.Image)
 }
 
-type Button struct {
-	sprite *ebiten.Image
-}
+//type Button struct {
+//	sprite *ebiten.Image
+//}
 
 type MainMenuScene struct {
-	buttons           []Button
+	//buttons           []Button
+	buttons           []string
 	highlightedButton int
 }
 
@@ -205,19 +211,36 @@ func (m *MainMenuScene) Draw(screen *ebiten.Image) {
 	// The height of each button, multiplied by the number of buttons, plus the amount of padding between each button, multiplied by the number of buttons minus 1
 
 	// Using constants for now
-	buttonHeight := 30
-	buttonPadding := 10
+	buttonHeight := 45
+	buttonWidth := 150
+	buttonPadding := 20
+	highlightSize := 4
 
 	buttonGroupArea := (buttonHeight * len(m.buttons)) + (buttonPadding * (len(m.buttons) - 1))
 	topOfButtonGroup := (gameScreen.h / 2) - (buttonGroupArea / 2)
 
+	tt, err := opentype.Parse(goregular.TTF)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fontFace, err := opentype.NewFace(tt, &opentype.FaceOptions{
+		Size:    24,
+		DPI:     72,
+		Hinting: font.HintingFull,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	for i, v := range m.buttons {
-		buttonOptions := &ebiten.DrawImageOptions{}
-		buttonX := (gameScreen.w / 2) - (v.sprite.Bounds().Dx() / 2)
+		buttonX := (gameScreen.w / 2) - (buttonWidth / 2)
 		buttonY := topOfButtonGroup + ((buttonPadding + buttonHeight) * i)
-		buttonOptions.GeoM.Translate(float64(buttonX), float64(buttonY))
+		//buttonOptions := &ebiten.DrawImageOptions{}
+		//buttonX := (gameScreen.w / 2) - (v.sprite.Bounds().Dx() / 2)
+		//buttonY := topOfButtonGroup + ((buttonPadding + buttonHeight) * i)
+		//buttonOptions.GeoM.Translate(float64(buttonX), float64(buttonY))
 		if i == m.highlightedButton {
-			highlightButton := ebiten.NewImage(v.sprite.Bounds().Dx()+4, v.sprite.Bounds().Dy()+4)
+			highlightButton := ebiten.NewImage(buttonWidth+(highlightSize*2), buttonHeight+(highlightSize*2))
 			highlightButton.Fill(color.RGBA{R: 255, G: 255, B: 0, A: 255})
 			highlightOptions := &ebiten.DrawImageOptions{}
 			highlightX := buttonX - 2
@@ -225,7 +248,9 @@ func (m *MainMenuScene) Draw(screen *ebiten.Image) {
 			highlightOptions.GeoM.Translate(float64(highlightX), float64(highlightY))
 			screen.DrawImage(highlightButton, highlightOptions)
 		}
-		screen.DrawImage(v.sprite, buttonOptions)
+		ebitenutil.DrawRect(screen, float64(buttonX), float64(buttonY), float64(buttonWidth), float64(buttonHeight), color.White)
+		text.Draw(screen, v, fontFace, buttonX+(buttonWidth/2)-(font.MeasureString(fontFace, v).Round()/2), buttonY+(buttonHeight/2)+fontFace.Metrics().Ascent.Round()/2, color.Black)
+		//screen.DrawImage(v.sprite, buttonOptions)
 	}
 }
 
@@ -339,19 +364,22 @@ func main() {
 
 	ebiten.SetWindowSize(gameScreen.w, gameScreen.h)
 
-	startButton, _, err := ebitenutil.NewImageFromFile("./startGame.png")
-	if err != nil {
-		log.Fatal(err)
-	}
+	//startButton, _, err := ebitenutil.NewImageFromFile("./startGame.png")
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//
+	//exitButton, _, err := ebitenutil.NewImageFromFile("./exitGame.png")
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
 
-	exitButton, _, err := ebitenutil.NewImageFromFile("./exitGame.png")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var buttons []Button
-	buttons = append(buttons, Button{sprite: startButton})
-	buttons = append(buttons, Button{sprite: exitButton})
+	//var buttons []Button
+	//buttons = append(buttons, Button{sprite: startButton})
+	//buttons = append(buttons, Button{sprite: exitButton})
+	var buttons []string
+	buttons = append(buttons, "Start Game")
+	buttons = append(buttons, "Exit Game")
 
 	game = &Game{
 		CurrentScene: &MainMenuScene{

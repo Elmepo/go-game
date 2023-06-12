@@ -11,4 +11,4 @@ Felt like playing around with go and ebiten. Adding features as I see fit.
 - [ ] Improve collision detection - currently there's instances where it looks/"feels" like the player should be colliding with the food/mine but isn't
 - [ ] Improve mine spawning by adding reverse clustering - i.e. made it the mines can't spawn within x range of another mine unless unable to
 - [ ] Improve food placement, ensure not placed on screen borders
-- [ ] Replace hard coded images with ebiten text
+- [x] Replace hard coded images with ebiten text
