@@ -235,10 +235,6 @@ func (m *MainMenuScene) Draw(screen *ebiten.Image) {
 	for i, v := range m.buttons {
 		buttonX := (gameScreen.w / 2) - (buttonWidth / 2)
 		buttonY := topOfButtonGroup + ((buttonPadding + buttonHeight) * i)
-		//buttonOptions := &ebiten.DrawImageOptions{}
-		//buttonX := (gameScreen.w / 2) - (v.sprite.Bounds().Dx() / 2)
-		//buttonY := topOfButtonGroup + ((buttonPadding + buttonHeight) * i)
-		//buttonOptions.GeoM.Translate(float64(buttonX), float64(buttonY))
 		if i == m.highlightedButton {
 			highlightButton := ebiten.NewImage(buttonWidth+(highlightSize*2), buttonHeight+(highlightSize*2))
 			highlightButton.Fill(color.RGBA{R: 255, G: 255, B: 0, A: 255})
@@ -250,7 +246,6 @@ func (m *MainMenuScene) Draw(screen *ebiten.Image) {
 		}
 		ebitenutil.DrawRect(screen, float64(buttonX), float64(buttonY), float64(buttonWidth), float64(buttonHeight), color.White)
 		text.Draw(screen, v, fontFace, buttonX+(buttonWidth/2)-(font.MeasureString(fontFace, v).Round()/2), buttonY+(buttonHeight/2)+fontFace.Metrics().Ascent.Round()/2, color.Black)
-		//screen.DrawImage(v.sprite, buttonOptions)
 	}
 }
 
@@ -364,19 +359,6 @@ func main() {
 
 	ebiten.SetWindowSize(gameScreen.w, gameScreen.h)
 
-	//startButton, _, err := ebitenutil.NewImageFromFile("./startGame.png")
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//
-	//exitButton, _, err := ebitenutil.NewImageFromFile("./exitGame.png")
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-
-	//var buttons []Button
-	//buttons = append(buttons, Button{sprite: startButton})
-	//buttons = append(buttons, Button{sprite: exitButton})
 	var buttons []string
 	buttons = append(buttons, "Start Game")
 	buttons = append(buttons, "Exit Game")
@@ -385,10 +367,6 @@ func main() {
 		CurrentScene: &MainMenuScene{
 			buttons:           buttons,
 			highlightedButton: 0,
-			//startButton:  startButton,
-			//exitButton:   exitButton,
-			//startButtonX: (gameScreen.w / 2) - (startButton.Bounds().Dx() / 2),
-			//startButtonY: (gameScreen.h / 2) - (startButton.Bounds().Dy() / 2),
 		},
 	}
 
