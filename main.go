@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/color"
 	"log"
+	"math"
 	"math/rand"
 	"time"
 
@@ -275,10 +276,28 @@ func (g *GameScene) Update() error {
 		}
 	}
 
+	borderWidth := float64(40)
+	minFoodDist := float64(40)
+	cardDist := float64(0)
+	newFoodX := float64(0)
+	newFoodY := float64(0)
+
 	if g.food.eaten {
 		fmt.Println("Placing the food somewhere")
-		g.food.position.x = 0 + rand.Float64()*float64(g.screenSize.w)
-		g.food.position.y = 0 + rand.Float64()*float64(g.screenSize.h)
+
+		for cardDist < minFoodDist {
+			fmt.Printf("Before: cardDist %f, newFoodX %f, newFoodY %f\n", cardDist, newFoodX, newFoodY)
+			newFoodX = borderWidth + rand.Float64()*(float64(g.screenSize.w)-borderWidth)
+			newFoodY = borderWidth + rand.Float64()*(float64(g.screenSize.h)-borderWidth)
+
+			cardX := newFoodX - g.food.position.x
+			cardY := newFoodY - g.food.position.y
+			cardDist = math.Sqrt((cardX * cardX) + (cardY * cardY))
+			fmt.Printf("After: cardDist %f, newFoodX %f, newFoodY %f\n", cardDist, newFoodX, newFoodY)
+		}
+
+		g.food.position.x = newFoodX
+		g.food.position.y = newFoodY
 		g.food.eaten = false
 	}
 
